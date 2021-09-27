@@ -13,6 +13,13 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS items(
         itemInventory int
 )""")
 
+cursor.execute("""CREATE TABLE IF NOT EXISTS dailyBatch(
+        itemsSold text,
+        itemPrice real
+    )""")
+
+conn.commit()
+
 root = Tk()
 root.title("POS App")
 root.geometry("975x650")
