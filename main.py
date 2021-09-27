@@ -1,7 +1,9 @@
-from tkinter import *
+from tkinter.ttk import *
 from tkinter import filedialog
 import sqlite3
-
+from tkinter import Tk
+from ttkthemes import themed_tk as tk
+from tkinter import Toplevel
 conn = sqlite3.connect('app.db')
 
 
@@ -20,7 +22,10 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS dailyBatch(
 
 conn.commit()
 
-root = Tk()
+root = tk.ThemedTk()
+root.get_themes()
+root.set_theme("breeze")
+
 root.title("POS App")
 root.geometry("975x650")
 
@@ -36,7 +41,7 @@ newOrderTotal = 0
 refreshButton = Button(root, text='Refresh', command=lambda:refresh())
 refreshButton.place(x=SCREEN_WIDTH - 100, y=10)
 
-newItemOpenWindow = Button(root, text="Add New Item", command=lambda:openItemWindow(), width=29, height=3)
+newItemOpenWindow = Button(root, text="Add New Item", command=lambda:openItemWindow())
 newItemOpenWindow.grid(row=rowChange + 1, column=0, columnspan=2)
 
 PlaceOrderButton = Button(root, text='Checkout', command=lambda:checkout())
@@ -72,7 +77,7 @@ def loadItem(name, price):
         rowChange += 1
         columnChange = 0
 
-    bookButton = Button(root, text=name + f'\n{price}', width=12, height=6, command=lambda:addItem(name, price))
+    bookButton = Button(root, text=name + f'\n{price}', command=lambda:addItem(name, price))
     bookButton.grid(row=rowChange, column=columnChange, padx=10, pady=10)
 
 def addItem(name, price):
@@ -122,7 +127,7 @@ def openItemWindow():
     newItemImageButton = Button(newItemWindow, text="Select Image", command=lambda:browseFiles(newItemWindow))
     newItemImageButton.grid(row=3, column=0, padx=10, pady=5)
 
-    submitNewItemButton = Button(newItemWindow, text='Submit Item', width=20, command=lambda:submitNewItem(newItemEntry.get(), newItemPriceEntry.get(), None, newItemWindow))
+    submitNewItemButton = Button(newItemWindow, text='Submit Item', command=lambda:submitNewItem(newItemEntry.get(), newItemPriceEntry.get(), None, newItemWindow))
     submitNewItemButton.grid(row=4, column=0, padx=10, pady=15, columnspan=2)
 
 
@@ -136,7 +141,7 @@ def browseFiles(window):
                                                        ("all files",
                                                         "*.*")))
                     
-    fileSelectedLabel = Label(window, text="Selected Image: " + filename)
+    fileSelectedLabel = Label(window, text="Selected Image: " + filename[0])
     fileSelectedLabel.grid(row=3, column=1, columnspan=2, padx=10, pady=5)                
             
 
