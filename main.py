@@ -29,8 +29,9 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 975, 650
 rowChange = 0
 columnChange = -1
 
-newOrderPrice = 0
+newOrderPrice = []
 newOrderList = []
+newOrderTotal = 0
 
 refreshButton = Button(root, text='Refresh', command=lambda:refresh())
 refreshButton.place(x=SCREEN_WIDTH - 100, y=10)
@@ -39,8 +40,13 @@ newItemOpenWindow = Button(root, text="Add New Item", command=lambda:openItemWin
 newItemOpenWindow.grid(row=rowChange + 1, column=0, columnspan=2)
 
 PlaceOrderButton = Button(root, text='Checkout', command=lambda:checkout())
-PlaceOrderButton.place(x=SCREEN_WIDTH - 100, y=SCREEN_HEIGHT - 100)
+PlaceOrderButton.place(x=SCREEN_WIDTH - 150, y=SCREEN_HEIGHT - 200)
 
+getDailyTotalButton = Button(root, text='Get Daily Total', command=lambda:getDailyTotal())
+getDailyTotalButton.place(x=SCREEN_WIDTH - 150, y=SCREEN_HEIGHT - 150)
+
+clearBatchButton = Button(root, text='Clear Daily Batch', command=lambda:clearBatch())
+clearBatchButton.place(x=SCREEN_WIDTH-150, y=SCREEN_HEIGHT-50)
 
 def refresh():
     global refreshButton
@@ -69,17 +75,19 @@ def loadItem(name, price):
     bookButton = Button(root, text=name + f'\n{price}', width=12, height=6, command=lambda:addItem(name, price))
     bookButton.grid(row=rowChange, column=columnChange, padx=10, pady=10)
 
-    newItemOpenWindow.grid_configure(row=rowChange + 1, column=0, columnspan=2)
-        
-        
-
-
 def addItem(name, price):
     global newOrderPrice
-    newOrderPrice += price
+    global newOrderTotal
+    newOrderTotal = 0
+    newOrderPrice.append(price)
+    newOrderTotal = 0
     newOrderList.append(name)
 
-    print(str(newOrderList) + ' ' + str(newOrderPrice))
+    for x in newOrderPrice:
+        newOrderTotal += x
+
+
+    print(str(newOrderList) + ' ' + str(newOrderTotal))
 
     orderLabel = Label(root, text='Order: \n')
     orderLabel.place_forget()
@@ -87,9 +95,10 @@ def addItem(name, price):
     for item in newOrderList:
         orderLabel.configure(text=orderLabel.cget("text") + '\n' + item)
     
-    orderLabel.configure(text=orderLabel.cget("text") + '\n Total:  ' + str(newOrderPrice))
+    orderLabel.configure(text=orderLabel.cget("text") + '\n Total:  ' + str(newOrderTotal))
 
     orderLabel.place(x=SCREEN_WIDTH - 150, y=100)
+
 
 
 
@@ -148,6 +157,8 @@ def submitNewItem(itemName, itemPrice, itemImage, window):
 def checkout():
     global newOrderPrice
     global newOrderList
+    global newOrderTotal
+    global checkoutWindow
 
     checkoutWindow = Toplevel()
     checkoutWindow.title("Checkout")
@@ -161,8 +172,8 @@ def checkout():
 
     cashEntry = Entry(checkoutWindow)
     cashLabel = Label(checkoutWindow, text='Amount Paid:')
-    submitPayButton = Button(checkoutWindow, text='Pay')
-    orderTotalLabel = Label(checkoutWindow, text=str(newOrderPrice))
+    submitPayButton = Button(checkoutWindow, text='Pay', command=lambda:clearOrder())
+    orderTotalLabel = Label(checkoutWindow, text=str(newOrderTotal))
 
     cashLabel.grid(row=0, column=0)
     cashEntry.grid(row=0, column=1)
@@ -171,6 +182,64 @@ def checkout():
 
     orderLabel.grid(row=3, column=0, columnspan=2)
 
+
+def clearOrder():
+    global newOrderList
+    global newOrderPrice
+    global newOrderTotal
+    global checkoutWindow
+
+    priceCounter = 0
+
+    for x in newOrderList:
+
+        cursor.execute("INSERT INTO dailyBatch VALUES(:itemSold, :itemPrice)",
+        {
+            'itemSold': x,
+            'itemPrice': newOrderPrice[priceCounter]
+
+        })
+        conn.commit()
+        priceCounter += 1
+    
+    newOrderList.clear()
+    newOrderPrice.clear()
+    newOrderTotal = 0
+    checkoutWindow.destroy()
+
+
+def getDailyTotal():
+
+    cursor.execute("SELECT itemPrice FROM dailybatch")
+
+    totals = cursor.fetchall()
+    dailyTotal = 0
+
+    for x in totals:
+        dailyTotal += x[0]
+
+    
+    
+    dailyTotalLabel = Label(root, text='Daily Total: ' + str(dailyTotal))
+    dailyTotalLabel.place(x=SCREEN_WIDTH - 150, y=SCREEN_HEIGHT - 100)
+
+def clearBatch():
+    confirmClearbatch = Toplevel()
+    confirmClearbatch.title("CONFIRM NEW BATCH")
+
+    cancelButton = Button(confirmClearbatch, text="Cancel", command=lambda:cancelNewBatch(confirmClearbatch))
+    confirmButton = Button(confirmClearbatch, text="Confirm", command=lambda:deleteBatch(confirmClearbatch))
+
+    cancelButton.grid(row=0, column=0)
+    confirmButton.grid(row=0, column=1)
+
+def cancelNewBatch(window):
+    window.destroy()
+
+def deleteBatch(window):
+    cursor.execute("DELETE FROM dailyBatch")
+    conn.commit()
+    window.destroy()
 
 
 
