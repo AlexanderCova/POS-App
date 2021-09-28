@@ -2,7 +2,7 @@ from tkinter.ttk import *
 from tkinter import filedialog
 import sqlite3
 from tkinter import Tk
-from ttkthemes import themed_tk as tk
+from ttkthemes import themed_tk as tkt
 from tkinter import Toplevel
 conn = sqlite3.connect('app.db')
 
@@ -22,7 +22,7 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS dailyBatch(
 
 conn.commit()
 
-root = tk.ThemedTk()
+root = tkt.ThemedTk()
 root.get_themes()
 root.set_theme("breeze")
 
@@ -78,7 +78,7 @@ def loadItem(name, price):
         columnChange = 0
 
     bookButton = Button(root, text=name + f'\n{price}', command=lambda:addItem(name, price))
-    bookButton.grid(row=rowChange, column=columnChange, padx=10, pady=10)
+    bookButton.grid(row=rowChange, column=columnChange, padx=10, pady=10, ipadx=10, ipady=30)
 
 def addItem(name, price):
     global newOrderPrice
@@ -141,7 +141,7 @@ def browseFiles(window):
                                                        ("all files",
                                                         "*.*")))
                     
-    fileSelectedLabel = Label(window, text="Selected Image: " + filename[0])
+    fileSelectedLabel = Label(window, text="Selected Image: " + filename)
     fileSelectedLabel.grid(row=3, column=1, columnspan=2, padx=10, pady=5)                
             
 
